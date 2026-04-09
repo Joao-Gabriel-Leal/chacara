@@ -1,36 +1,136 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Chacara Hub
 
-## Getting Started
+Aplicacao web premium para organizar um evento entre amigos em uma chacara, com visual moderno, area autenticada, financeiro, galeria, enquetes, jogos, mural e painel administrativo.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 com App Router
+- TypeScript
+- Tailwind CSS v4
+- shadcn/ui
+- Supabase Auth, Database e Storage
+- PostgreSQL
+- React Hook Form + Zod
+- TanStack Query
+- Framer Motion
+- Lucide Icons
+
+## O que ja vem pronto
+
+- Landing page com countdown e hero premium
+- Login, cadastro por convite e recuperacao de senha
+- Dashboard individual com financeiro, quarto, fotos, avisos e ranking
+- Perfil editavel com React Hook Form + Zod
+- Financeiro com barra de arrecadacao, tabela de participantes e envio de comprovante
+- Galeria em 3 camadas: app, album completo e curadoria
+- Organizacao do evento por abas
+- Divisao de quartos
+- Enquetes com resultados
+- Jogos com ranking
+- Mural interno
+- Painel admin unificado
+- Migrations iniciais com RLS
+- Seed SQL e script para seed de usuarios no Supabase Auth
+- Smoke test com Playwright
+
+## Requisitos
+
+- Node.js 20+ recomendado
+- npm 11+
+- Projeto Supabase criado
+
+## Como rodar localmente
+
+1. Instale as dependencias:
+
+```bash
+npm install
+```
+
+2. Copie `.env.example` para `.env.local` e preencha:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_EVENT_DATE=2026-12-12T12:00:00-03:00
+NEXT_PUBLIC_EVENT_LOCATION=Chacara Horizonte, Mairinque - SP
+```
+
+3. Rode o app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Sem variaveis do Supabase, a UI continua navegavel em modo demo com dados mockados.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Setup do Supabase
 
-## Learn More
+1. Crie um projeto no Supabase.
+2. Configure os buckets:
+   - `avatars`
+   - `gallery`
+   - `payment-proofs`
+3. Rode a migration em `supabase/migrations/20260409204000_init.sql`.
+4. Rode o seed SQL em `supabase/seed.sql`.
+5. Gere os usuarios demo:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run seed:demo
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contas e dados que voce precisa ter
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- 1 conta/projeto no Supabase
+- Opcional: SMTP configurado no Supabase para recovery real
+- Para colocar em producao com dados reais, substitua os placeholders por:
+  - nome oficial do evento
+  - data/hora
+  - local
+  - custo total e valor por pessoa
+  - chave/instrucoes PIX
+  - admin principal
+  - quartos e capacidade
+  - links dos albuns externos
+  - itens reais de organizacao
 
-## Deploy on Vercel
+## Estrutura do projeto
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```text
+src/
+  app/
+    (public)/
+    (authenticated)/
+  components/
+  features/
+  lib/
+  types/
+supabase/
+  migrations/
+  seed.sql
+scripts/
+tests/
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Testes
+
+Lint:
+
+```bash
+npm run lint
+```
+
+Smoke E2E:
+
+```bash
+npm run test:e2e
+```
+
+## Observacoes
+
+- O projeto foi estruturado para evoluir os dados mockados para queries reais do Supabase sem retrabalho grande.
+- As telas ja seguem um design system consistente, dark mode e responsividade.
+- Os fluxos de mutacao hoje estao prontos visualmente e parcialmente integrados; a persistencia completa depende de conectar as actions/queries ao seu projeto Supabase.
