@@ -1,6 +1,8 @@
 import { Search, WalletCards } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { PaymentProofForm } from "@/features/finance/components/payment-proof-form";
+import { getCurrentProfile } from "@/lib/auth";
+import { getFinanceData } from "@/lib/services/finance";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -12,11 +14,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { currentUser, eventSettings, paymentHistory, profiles } from "@/lib/mock-data";
+import { currentUser, eventSettings } from "@/lib/mock-data";
 
-export default function FinancePage() {
-  const totalCollected = profiles.reduce((sum, profile) => sum + profile.amountPaid, 0);
-  const progress = (totalCollected / eventSettings.totalCost) * 100;
+export default async function FinancePage() {
+  const profile = await getCurrentProfile();
+  const { participants, paymentHistory, eventSettings: liveSettings, currentSummary } =
+    await getFinanceData(profile?.id);
+  const settings = liveSettings ?? eventSettings;
+  const totalCollected = participants.reduce((sum, participant) => sum + participant.amountPaid, 0);
+  const progress = settings.total_cost
+    ? (totalCollected / Number(settings.total_cost)) * 100
+    : (totalCollected / eventSettings.totalCost) * 100;
+  const currentPayment = currentSummary ?? {
+    payment_status: profile?.paymentStatus ?? currentUser.paymentStatus,
+    amount_paid: profile?.amountPaid ?? currentUser.amountPaid,
+  };
 
   return (
     <div className="space-y-4">
@@ -30,9 +42,9 @@ export default function FinancePage() {
         <section className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
             {[
-              ["Valor total da chacara", `R$ ${eventSettings.totalCost}`, "Custos totais do evento"],
-              ["Valor por pessoa", `R$ ${eventSettings.amountPerPerson}`, "Meta individual"],
-              ["Seu status", currentUser.paymentStatus, `Pago R$ ${currentUser.amountPaid}`],
+              ["Valor total da chacara", `R$ ${Number(settings.total_cost ?? eventSettings.totalCost)}`, "Custos totais do evento"],
+              ["Valor por pessoa", `R$ ${Number(settings.amount_per_person ?? eventSettings.amountPerPerson)}`, "Meta individual"],
+              ["Seu status", currentPayment.payment_status, `Pago R$ ${Number(currentPayment.amount_paid)}`],
             ].map(([label, value, hint]) => (
               <div key={label} className="rounded-[28px] border border-white/10 bg-white/5 p-5">
                 <p className="text-sm text-zinc-400">{label}</p>
@@ -76,12 +88,12 @@ export default function FinancePage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {profiles.slice(0, 8).map((profile) => (
-                  <TableRow key={profile.id}>
-                    <TableCell>{profile.name}</TableCell>
-                    <TableCell className="capitalize">{profile.paymentStatus}</TableCell>
-                    <TableCell>R$ {profile.amountPaid}</TableCell>
-                    <TableCell>R$ {profile.amountDue - profile.amountPaid}</TableCell>
+                {participants.slice(0, 8).map((participant) => (
+                  <TableRow key={participant.id}>
+                    <TableCell>{participant.name}</TableCell>
+                    <TableCell className="capitalize">{participant.paymentStatus}</TableCell>
+                    <TableCell>R$ {participant.amountPaid}</TableCell>
+                    <TableCell>R$ {participant.amountDue - participant.amountPaid}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

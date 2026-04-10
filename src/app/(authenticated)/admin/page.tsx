@@ -1,11 +1,14 @@
 import { BarChart, CreditCard, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
+import { requireAdminUser } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { adminMetrics, paymentHistory, profiles } from "@/lib/mock-data";
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  await requireAdminUser();
+
   return (
     <div className="space-y-4">
       <PageHeader
@@ -81,7 +84,7 @@ export default function AdminPage() {
                 <div>
                   <p className="font-medium">{profile.name}</p>
                   <p className="text-sm text-zinc-400">
-                    {profile.roleInEvent} • {profile.paymentStatus}
+                    {profile.roleInEvent} - {profile.paymentStatus}
                   </p>
                 </div>
                 <Button variant="outline" className="rounded-full border-white/10 bg-white/5">

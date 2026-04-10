@@ -51,8 +51,9 @@ export function RegisterForm() {
       }
     }
 
-    toast.success("Convite validado. Conta preparada para o evento.");
-    router.push("/dashboard");
+    toast.success("Conta criada. Se o login nao entrar automatico, use a tela de login.");
+    router.refresh();
+    router.push("/login");
   });
 
   return (

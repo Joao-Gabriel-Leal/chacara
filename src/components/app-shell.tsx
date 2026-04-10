@@ -14,11 +14,11 @@ import {
   ShieldCheck,
   UserCircle2,
 } from "lucide-react";
+import { AppProfile } from "@/types/domain";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SignOutButton } from "@/components/sign-out-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { currentUser } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -31,11 +31,19 @@ const navigation = [
   { href: "/polls", label: "Enquetes", icon: Flame },
   { href: "/games", label: "Jogos", icon: Gamepad2 },
   { href: "/feed", label: "Mural", icon: MessageSquareHeart },
-  { href: "/admin", label: "Admin", icon: ShieldCheck },
 ];
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  currentUser,
+}: {
+  children: React.ReactNode;
+  currentUser: AppProfile;
+}) {
   const pathname = usePathname();
+  const items = currentUser.appRole === "admin"
+    ? [...navigation, { href: "/admin", label: "Admin", icon: ShieldCheck }]
+    : navigation;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.18),_transparent_25%),linear-gradient(180deg,#09090b_0%,#101114_100%)] text-white">
@@ -66,7 +74,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <nav className="mt-8 flex-1 space-y-2">
-            {navigation.map(({ href, label, icon: Icon }) => {
+            {items.map(({ href, label, icon: Icon }) => {
               const active = pathname === href;
               return (
                 <Link
@@ -104,9 +112,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex items-center gap-3">
               <ThemeToggle />
-              <Button asChild className="rounded-full bg-white text-black hover:bg-zinc-200">
-                <Link href="/login">Trocar conta</Link>
-              </Button>
+              <SignOutButton />
             </div>
           </header>
 

@@ -4,7 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { currentUser } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/browser";
+import { AppProfile } from "@/types/domain";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -18,19 +19,41 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { profileSchema } from "@/features/auth/schemas";
 
-export function ProfileForm() {
+export function ProfileForm({ profile }: { profile: AppProfile }) {
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: currentUser.name,
-      nickname: currentUser.nickname,
-      bio: currentUser.bio,
-      roleInEvent: currentUser.roleInEvent,
+      name: profile.name,
+      nickname: profile.nickname,
+      bio: profile.bio,
+      roleInEvent: profile.roleInEvent,
     },
   });
 
-  const onSubmit = form.handleSubmit(() => {
-    toast.success("Perfil atualizado. No Supabase real isso persiste no banco.");
+  const onSubmit = form.handleSubmit(async (values) => {
+    const supabase = createClient();
+
+    if (!supabase) {
+      toast.success("Perfil atualizado no modo demo.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        full_name: values.name,
+        nickname: values.nickname,
+        bio: values.bio,
+        role_in_event: values.roleInEvent,
+      })
+      .eq("id", profile.id);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success("Perfil atualizado com sucesso.");
   });
 
   return (

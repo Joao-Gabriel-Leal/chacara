@@ -42,6 +42,7 @@ export function LoginForm() {
       toast.success("Modo demo ativo. Entrando no dashboard com dados mockados.");
     }
 
+    router.refresh();
     router.push("/dashboard");
   });
 

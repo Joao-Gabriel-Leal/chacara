@@ -1,9 +1,14 @@
 import { AppShell } from "@/components/app-shell";
+import { getCurrentProfile, requireAuthenticatedUser } from "@/lib/auth";
+import { currentUser } from "@/lib/mock-data";
 
-export default function AuthenticatedLayout({
+export default async function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AppShell>{children}</AppShell>;
+  await requireAuthenticatedUser();
+  const profile = (await getCurrentProfile()) ?? currentUser;
+
+  return <AppShell currentUser={profile}>{children}</AppShell>;
 }
