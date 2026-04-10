@@ -20,7 +20,7 @@ export async function getDashboardData(profile: AppProfile) {
     };
   }
 
-  const [{ data: paymentSummary }, { data: settings }, { data: photos }, { data: activePolls }] =
+  const [{ data: paymentSummary }, { data: settings }, { data: photos }, { data: activePolls }, { data: scoreEvents }, { data: profiles }] =
     await Promise.all([
       supabase
         .from("payment_summary")
@@ -35,7 +35,23 @@ export async function getDashboardData(profile: AppProfile) {
         .order("likes_count", { ascending: false })
         .limit(3),
       supabase.from("polls").select("id,title,description,status").eq("status", "active").limit(3),
+      supabase.from("game_score_events").select("user_id,points"),
+      supabase.from("profiles").select("id,full_name"),
     ]);
+
+  const profileMap = new Map((profiles ?? []).map((row) => [row.id, row.full_name]));
+  const rankingMap = new Map<string, number>();
+  (scoreEvents ?? []).forEach((row) => {
+    rankingMap.set(row.user_id, (rankingMap.get(row.user_id) ?? 0) + row.points);
+  });
+  const realRanking = [...rankingMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([userId, points]) => ({
+      user: profileMap.get(userId) ?? "Convidado",
+      points,
+      streak: "pontuacao real",
+    }));
 
   const enrichedProfile = {
     ...profile,
@@ -79,7 +95,7 @@ export async function getDashboardData(profile: AppProfile) {
           totalVotes: 0,
           options: [],
         })) ?? polls,
-      gameRanking,
+      gameRanking: realRanking.length > 0 ? realRanking : gameRanking,
     },
   };
 }
