@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Crown, Dice5, Sparkles, Zap } from "lucide-react";
+import { Crown, Dice5, History, Sparkles, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,7 @@ export function GamesClientPage({
   const [selectedPlayer, setSelectedPlayer] = useState<string>("");
   const [note, setNote] = useState("");
   const [points, setPoints] = useState(10);
+  const [activeGameId, setActiveGameId] = useState<string>("");
   const [isPending, startTransition] = useTransition();
 
   const { data } = useQuery({
@@ -162,6 +163,7 @@ export function GamesClientPage({
                           <Select
                             value={selectedPlayer}
                             onValueChange={(value) => {
+                              setActiveGameId(game.id);
                               setSelectedPlayer(value ?? "");
                               setPoints(defaultPoints[game.id] ?? 10);
                             }}
@@ -185,6 +187,22 @@ export function GamesClientPage({
                             value={points}
                             onChange={(event) => setPoints(Number(event.target.value))}
                           />
+                          <div className="flex flex-wrap gap-2">
+                            {[5, 10, 15, 20, 25].map((quickPoints) => (
+                              <Button
+                                key={quickPoints}
+                                type="button"
+                                variant={points === quickPoints && activeGameId === game.id ? "default" : "outline"}
+                                className="rounded-full border-white/10 bg-white/5"
+                                onClick={() => {
+                                  setActiveGameId(game.id);
+                                  setPoints(quickPoints);
+                                }}
+                              >
+                                {quickPoints} pts
+                              </Button>
+                            ))}
+                          </div>
                         </div>
                         <div className="space-y-2">
                           <Label>Resumo da jogada</Label>
@@ -243,6 +261,29 @@ export function GamesClientPage({
                 </Badge>
               </div>
             ))}
+          </div>
+          <div className="mt-8">
+            <div className="flex items-center gap-3">
+              <History className="size-5 text-emerald-200" />
+              <h3 className="font-heading text-xl font-semibold">Ultimas rodadas</h3>
+            </div>
+            <div className="mt-4 space-y-3">
+              {data.recentSessions.length > 0 ? data.recentSessions.map((session) => (
+                <div
+                  key={session.id}
+                  className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
+                >
+                  <p className="font-medium">{session.title}</p>
+                  <p className="text-sm capitalize text-zinc-400">
+                    {session.gameType.replaceAll("-", " ")} - {session.createdAt}
+                  </p>
+                </div>
+              )) : (
+                <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 p-4 text-sm text-zinc-400">
+                  Ainda nao houve rodadas registradas.
+                </div>
+              )}
+            </div>
           </div>
         </aside>
       </div>

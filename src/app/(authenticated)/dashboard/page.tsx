@@ -6,18 +6,31 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { MotionFade } from "@/features/shared/components/motion-fade";
-import { getCurrentProfile } from "@/lib/auth";
+import { getCurrentProfile, requireAuthenticatedUser } from "@/lib/auth";
 import { getDashboardData } from "@/lib/services/dashboard";
-import { currentUser } from "@/lib/mock-data";
 import { AppProfile } from "@/types/domain";
 
 export default async function DashboardPage() {
+  const sessionState = await requireAuthenticatedUser();
+  const user = sessionState.user!;
   const profile =
     (await getCurrentProfile()) ??
     ({
-      ...currentUser,
+      id: user.id,
+      name: user.user_metadata.full_name ?? user.email ?? "Participante",
+      nickname: user.user_metadata.full_name?.split(" ")[0] ?? "Convidado",
+      avatar: `https://api.dicebear.com/9.x/notionists/svg?seed=${encodeURIComponent(user.email ?? user.id)}`,
+      bio: "",
+      eventStatus: "pending",
+      roleInEvent: "participante",
+      badge: "Guest",
+      itemToBring: "Nada definido",
+      amountPaid: 0,
+      amountDue: 0,
+      paymentStatus: "pending",
+      appRole: "member",
       roomName: null,
-      email: undefined,
+      email: user.email,
     } satisfies AppProfile);
   const { profile: hydratedProfile, summary, recentEvents } = await getDashboardData(profile);
   const paymentProgress =

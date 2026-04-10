@@ -19,7 +19,7 @@ export async function getFinanceData(currentUserId?: string) {
       supabase.from("payment_summary").select("*").order("full_name"),
       supabase
         .from("payment_submissions")
-        .select("id,user_id,amount,status,proof_path,note,created_at")
+        .select("id,user_id,amount,status,proof_path,note,created_at,profiles!payment_submissions_user_id_fkey(full_name)")
         .order("created_at", { ascending: false })
         .limit(12),
       currentUserId
@@ -49,7 +49,7 @@ export async function getFinanceData(currentUserId?: string) {
     paymentHistory:
       submissions?.map((item) => ({
         id: item.id,
-        user: "Participante",
+        user: item.profiles?.[0]?.full_name ?? "Participante",
         amount: Number(item.amount),
         status: item.status,
         submittedAt: new Date(item.created_at).toLocaleDateString("pt-BR"),

@@ -1,11 +1,31 @@
 import { BadgeCheck, UserSquare2 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { ProfileForm } from "@/features/profile/components/profile-form";
-import { getCurrentProfile } from "@/lib/auth";
-import { currentUser } from "@/lib/mock-data";
+import { getCurrentProfile, requireAuthenticatedUser } from "@/lib/auth";
+import { AppProfile } from "@/types/domain";
 
 export default async function ProfilePage() {
-  const profile = (await getCurrentProfile()) ?? currentUser;
+  const sessionState = await requireAuthenticatedUser();
+  const user = sessionState.user!;
+  const profile =
+    (await getCurrentProfile()) ??
+    {
+      id: user.id,
+      name: user.user_metadata.full_name ?? user.email ?? "Participante",
+      nickname: user.user_metadata.full_name?.split(" ")[0] ?? "Convidado",
+      avatar: `https://api.dicebear.com/9.x/notionists/svg?seed=${encodeURIComponent(user.email ?? user.id)}`,
+      bio: "",
+      eventStatus: "pending" as const,
+      roleInEvent: "participante",
+      badge: "Guest",
+      itemToBring: "Nada definido",
+      amountPaid: 0,
+      amountDue: 0,
+      paymentStatus: "pending" as const,
+      appRole: "member" as const,
+      email: user.email,
+      roomName: null,
+    } satisfies AppProfile;
 
   return (
     <div className="space-y-4">

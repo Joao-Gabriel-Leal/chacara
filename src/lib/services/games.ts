@@ -8,6 +8,7 @@ export async function getGamesData() {
     return {
       cards: gameCards,
       ranking: gameRanking,
+      recentSessions: [],
       players: profiles.map((profile) => ({
         id: profile.id,
         name: profile.name,
@@ -15,10 +16,15 @@ export async function getGamesData() {
     };
   }
 
-  const [{ data: sessionCounts }, { data: scoreEvents }, { data: playerRows }] = await Promise.all([
+  const [{ data: sessionCounts }, { data: scoreEvents }, { data: playerRows }, { data: sessions }] = await Promise.all([
     supabase.from("game_sessions").select("game_type"),
     supabase.from("game_score_events").select("user_id,points"),
     supabase.from("profiles").select("id,full_name").order("full_name"),
+    supabase
+      .from("game_sessions")
+      .select("id,title,game_type,created_at")
+      .order("created_at", { ascending: false })
+      .limit(6),
   ]);
 
   const counts = new Map<string, number>();
@@ -50,6 +56,13 @@ export async function getGamesData() {
       players: counts.get(card.id) ?? 0,
     })),
     ranking: ranking.length > 0 ? ranking : gameRanking,
+    recentSessions:
+      sessions?.map((session) => ({
+        id: session.id,
+        title: session.title,
+        gameType: session.game_type,
+        createdAt: new Date(session.created_at).toLocaleString("pt-BR"),
+      })) ?? [],
     players:
       playerRows?.map((player) => ({
         id: player.id,

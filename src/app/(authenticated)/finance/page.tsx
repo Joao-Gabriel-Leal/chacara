@@ -14,20 +14,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { currentUser, eventSettings } from "@/lib/mock-data";
 
 export default async function FinancePage() {
   const profile = await getCurrentProfile();
   const { participants, paymentHistory, eventSettings: liveSettings, currentSummary } =
     await getFinanceData(profile?.id);
-  const settings = liveSettings ?? eventSettings;
+  const settings = liveSettings ?? {
+    total_cost: 0,
+    amount_per_person: profile?.amountDue ?? 0,
+    pix_instructions: null,
+  };
   const totalCollected = participants.reduce((sum, participant) => sum + participant.amountPaid, 0);
   const progress = settings.total_cost
     ? (totalCollected / Number(settings.total_cost)) * 100
-    : (totalCollected / eventSettings.totalCost) * 100;
+    : 0;
   const currentPayment = currentSummary ?? {
-    payment_status: profile?.paymentStatus ?? currentUser.paymentStatus,
-    amount_paid: profile?.amountPaid ?? currentUser.amountPaid,
+    payment_status: profile?.paymentStatus ?? "pending",
+    amount_paid: profile?.amountPaid ?? 0,
   };
 
   return (
@@ -42,8 +45,8 @@ export default async function FinancePage() {
         <section className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
             {[
-              ["Valor total da chacara", `R$ ${Number(settings.total_cost ?? eventSettings.totalCost)}`, "Custos totais do evento"],
-              ["Valor por pessoa", `R$ ${Number(settings.amount_per_person ?? eventSettings.amountPerPerson)}`, "Meta individual"],
+              ["Valor total da chacara", `R$ ${Number(settings.total_cost ?? 0)}`, "Custos totais do evento"],
+              ["Valor por pessoa", `R$ ${Number(settings.amount_per_person ?? 0)}`, "Meta individual"],
               ["Seu status", currentPayment.payment_status, `Pago R$ ${Number(currentPayment.amount_paid)}`],
             ].map(([label, value, hint]) => (
               <div key={label} className="rounded-[28px] border border-white/10 bg-white/5 p-5">
@@ -107,7 +110,7 @@ export default async function FinancePage() {
               <WalletCards className="size-5 text-emerald-200" />
               <h2 className="font-heading text-2xl font-semibold">Enviar comprovante</h2>
             </div>
-            <PaymentProofForm />
+            <PaymentProofForm currentUserId={profile?.id} pixInstructions={settings.pix_instructions} />
           </div>
 
           <div className="rounded-[28px] border border-white/10 bg-white/5 p-6">
